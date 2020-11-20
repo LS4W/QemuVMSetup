@@ -7,6 +7,8 @@ image_size="20G"
 image="windows10.qcow2"
 graphics_arg="-nographics"
 cores=1
+virtio_img="virtio-win-0.1.189.iso"
+vm_name="ls4w"
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -49,6 +51,18 @@ case $key in
 	shift
 	shift
 	;;
+	
+	-v|--virtio)
+	virtio_img="$2"
+	shift
+	shift
+	;;
+
+	-n|--name)
+	vm_name="$2"
+	shift
+	shift
+	;;
 esac
 done
 
@@ -58,8 +72,29 @@ else
 	graphics_arg="-nographic"
 fi
 
+cp /usr/share/OVMF/OVMF_VARS.fd $image.fd
+
 echo "Creating image $image with size $image_size"
 qemu-img create -f qcow2 $image $image_size
 
 echo "Creating VM from $image. Memory: $memory, Graphics argument: $graphics_arg, booting with: $iso"
-qemu-system-x86_64 -m $memory -enable-kvm $graphics_arg -smp cores=$cores -bios /usr/share/ovmf/OVMF.fd -drive if=virtio,file=$image -cdrom $iso 
+qemu-system-x86_64 \
+-name guest=$vm_name,debug-threads=on \
+-drive if=pflash,format=raw,readonly,file=/usr/share/OVMF/OVMF_CODE.fd \
+-drive if=pflash,format=raw,file=$image.fd \
+-m $memory \
+-smp $cores \
+-no-reboot \
+$graphics_arg \
+-rtc base=localtime,driftfix=slew \
+-global kvm-pit.lost_tick_policy=delay \
+-global ICH9-LPC.disable_s3=1 \
+-global ICH9-LPC.disable_s4=1 \
+-boot strict=on \
+-blockdev "{\"driver\":\"file\",\"filename\":\"$image\",\"node-name\":\"libvirt-2-storage\",\"auto-read-only\":true,\"discard\":\"unmap\"}" \
+-blockdev '{"node-name":"libvirt-2-format","read-only":false,"driver":"qcow2","file":"libvirt-2-storage","backing":null}' \
+-device ide-hd,bus=ide.0,drive=libvirt-2-format,id=sata0-0-0,bootindex=2 \
+-blockdev "{\"driver\":\"file\",\"filename\":\"$iso\",\"node-name\":\"libvirt-1-storage\",\"auto-read-only\":true,\"discard\":\"unmap\"}" \
+-blockdev '{"node-name":"libvirt-1-format","read-only":true,"driver":"raw","file":"libvirt-1-storage"}' \
+-device ide-cd,bus=ide.1,drive=libvirt-1-format,id=sata0-0-1,bootindex=1 \
+
