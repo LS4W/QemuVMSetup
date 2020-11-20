@@ -1,0 +1,58 @@
+#!/bin/bash
+
+memory="1G"
+iso="windows.iso"
+enable_graphics="no"
+image_size="20G"
+image="windows10.qcow2"
+graphics_arg="-nographics"
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+	-m|--memory)
+	memory="$2"
+	shift
+	shift
+	;;
+
+	-i|--iso)
+	iso="$2"
+	shift
+	shift
+	;;
+
+	-g|--enable-graphics)
+	enable_graphics="yes"
+	shift
+	shift
+	;;
+
+	-s|--image-size)
+	image_size="$2"
+	shift
+	shift
+	;;
+
+	-i|--image)
+	image="$2"
+	shift
+	shift
+	;;
+esac
+done
+
+if [ "$enable_graphics" = "yes" ]; then
+	graphics_arg="-vga qxl"
+else
+	graphics_arg="-nographic"
+fi
+
+echo "Creating image $image with size $image_size"
+qemu-img create -f qcow2 $image $image_size
+
+echo "Creating VM from $image. Memory: $memory, Graphics argument: $graphics_arg, booting with: $iso"
+qemu-system-x86_64 -m $memory -enable-kvm $graphics_arg -bios /usr/share/ovmf/OVMF.fd -drive if=virtio,file=$image -cdrom $iso 
