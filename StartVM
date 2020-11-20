@@ -1,0 +1,40 @@
+#!/bin/bash
+
+memory="1G"
+enable_graphics="no"
+image="windows10.qcow2"
+graphics_arg="-nographics"
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+	-m|--memory)
+	memory="$2"
+	shift
+	shift
+	;;
+
+	-g|--enable-graphics)
+	enable_graphics="$2"
+	shift
+	shift
+	;;
+
+	-i|--image)
+	image="$2"
+	shift
+	shift
+	;;
+esac
+done
+
+if [ "$enable_graphics" = "yes" ]; then
+	graphics_arg="-vga qxl"
+else
+	graphics_arg="-nographic"
+fi
+
+qemu-system-x86_64 -m $memory -enable-kvm $graphics_arg -bios /usr/share/ovmf/OVMF.fd -drive if=virtio,file=$image 
