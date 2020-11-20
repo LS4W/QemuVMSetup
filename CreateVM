@@ -6,6 +6,7 @@ enable_graphics="no"
 image_size="20G"
 image="windows10.qcow2"
 graphics_arg="-nographics"
+cores=1
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -42,6 +43,12 @@ case $key in
 	shift
 	shift
 	;;
+
+	-i|--cores)
+	cores="$2"
+	shift
+	shift
+	;;
 esac
 done
 
@@ -55,4 +62,4 @@ echo "Creating image $image with size $image_size"
 qemu-img create -f qcow2 $image $image_size
 
 echo "Creating VM from $image. Memory: $memory, Graphics argument: $graphics_arg, booting with: $iso"
-qemu-system-x86_64 -m $memory -enable-kvm $graphics_arg -bios /usr/share/ovmf/OVMF.fd -drive if=virtio,file=$image -cdrom $iso 
+qemu-system-x86_64 -m $memory -enable-kvm $graphics_arg -smp cores=$cores -bios /usr/share/ovmf/OVMF.fd -drive if=virtio,file=$image -cdrom $iso 
