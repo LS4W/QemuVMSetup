@@ -1,0 +1,12 @@
+#!/bin/bash
+
+
+# Create HDD
+echo "Creating image $1 with size $2"
+qemu-img create -f qcow2 $1 $2 &> /dev/null
+
+if [ ! -f $1 ] ; then
+	echo "Failed to create HDD image."
+else
+	echo "Created HDD image."
+fi

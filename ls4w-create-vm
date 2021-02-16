@@ -3,7 +3,6 @@
 memory="1G"
 iso="windows.iso"
 enable_graphics="no"
-image_size="20G"
 image="windows10.qcow2"
 graphics_arg="-nographics"
 cores=1
@@ -34,13 +33,7 @@ case $key in
 	shift
 	;;
 
-	-s|--image-size)
-	image_size="$2"
-	shift
-	shift
-	;;
-
-	-i|--image)
+	-h|--hdd-image)
 	image="$2"
 	shift
 	shift
@@ -72,13 +65,17 @@ else
 	graphics_arg="-nographic"
 fi
 
+# Get necessary file for UEFI boot
+cp /usr/share/OVMF/OVMF_VARS.fd $image.fd
 
+echo "Creating VM from $image. Memory: $memory, Graphics argument: $graphics_arg, booting with: $iso"
 qemu-system-x86_64 \
 -name guest=$vm_name,debug-threads=on \
 -drive if=pflash,format=raw,readonly,file=/usr/share/OVMF/OVMF_CODE.fd \
 -drive if=pflash,format=raw,file=$image.fd \
 -m $memory \
 -smp $cores \
+-machine type=q35,accel=kvm \
 -no-reboot \
 $graphics_arg \
 -rtc base=localtime,driftfix=slew \
@@ -88,5 +85,8 @@ $graphics_arg \
 -boot strict=on \
 -blockdev "{\"driver\":\"file\",\"filename\":\"$image\",\"node-name\":\"libvirt-2-storage\",\"auto-read-only\":true,\"discard\":\"unmap\"}" \
 -blockdev '{"node-name":"libvirt-2-format","read-only":false,"driver":"qcow2","file":"libvirt-2-storage","backing":null}' \
--device ide-hd,bus=ide.0,drive=libvirt-2-format,id=sata0-0-0,bootindex=1 \
+-device ide-hd,bus=ide.0,drive=libvirt-2-format,id=sata0-0-0,bootindex=2 \
+-blockdev "{\"driver\":\"file\",\"filename\":\"$iso\",\"node-name\":\"libvirt-1-storage\",\"auto-read-only\":true,\"discard\":\"unmap\"}" \
+-blockdev '{"node-name":"libvirt-1-format","read-only":true,"driver":"raw","file":"libvirt-1-storage"}' \
+-device ide-cd,bus=ide.1,drive=libvirt-1-format,id=sata0-0-1,bootindex=1 \
 
