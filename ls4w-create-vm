@@ -66,12 +66,12 @@ else
 fi
 
 # Get necessary file for UEFI boot
-cp /usr/share/OVMF/OVMF_VARS.fd $image.fd
+cp /usr/share/OVMF/OVMF_VARS_4M.fd $image.fd
 
 echo "Creating VM from $image. Memory: $memory, Graphics argument: $graphics_arg, booting with: $iso"
 qemu-system-x86_64 \
 -name guest=$vm_name,debug-threads=on \
--drive if=pflash,format=raw,readonly,file=/usr/share/OVMF/OVMF_CODE.fd \
+-drive if=pflash,format=raw,readonly,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
 -drive if=pflash,format=raw,file=$image.fd \
 -m $memory \
 -smp $cores \
