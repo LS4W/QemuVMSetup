@@ -31,6 +31,12 @@ printf "\rProgress : [${_fill// /#}${_empty// /-}] ${_progress}%%"
 
 }
 
+check_process() {
+	[ "$1" = "" ] && return 0
+	[ `pgrep -n $1` ] && return 1 || return 0
+
+}
+
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -117,9 +123,9 @@ $graphics_arg \
 -device ide-hd,bus=ide.0,drive=libvirt-2-format,id=sata0-0-0,bootindex=2 \
 -blockdev "{\"driver\":\"file\",\"filename\":\"$iso\",\"node-name\":\"libvirt-1-storage\",\"auto-read-only\":true,\"discard\":\"unmap\"}" \
 -blockdev '{"node-name":"libvirt-1-format","read-only":true,"driver":"raw","file":"libvirt-1-storage"}' \
--device ide-cd,bus=ide.1,drive=libvirt-1-format,id=sata0-0-1,bootindex=1 &> /dev/null &
+-device ide-cd,bus=ide.1,drive=libvirt-1-format,id=sata0-0-1,bootindex=1 &>> ls4w-create-vm.log &
+QEMU_PROC=$!
 
-echo 
 echo Please wait while windows installs...
 
 while :
@@ -129,11 +135,19 @@ do
 	ProgressBar $vm_image_size 10159656	
 
 	if [ $vm_image_size -gt 10159656 ] ; then
-		printf "\n"
+		echo "\nDone with initial installation, waiting for VM to reboot."
 		break;
+	fi
+
+	check_process $QEMU_PROC
+	if [ $? -eq 0 ] ; then
+		printf "\nqemu stopped before installation finished.\n"
+		printf "Please check logs: ls4w-create-vm.log.\n"
+		break
 	fi
 
 	sleep 1
 done
 
-echo "Done with initial installation, waiting for VM to reboot."
+wait
+echo "Machine powered off."
