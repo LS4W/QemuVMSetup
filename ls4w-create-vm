@@ -6,8 +6,9 @@ enable_graphics="no"
 image="windows10.qcow2"
 graphics_arg="-nographics"
 cores=1
-virtio_img="virtio-win-0.1.189.iso"
 vm_name="ls4w"
+ovmf_vars="/usr/share/OVMF/OVMF_VARS_4M.fd"
+ovmf_code="/usr/share/OVMF/OVMF_CODE_4M.fd"
 
 
 ## Progress bar borrowed from: https://github.com/fearside/ProgressBar
@@ -66,15 +67,21 @@ case $key in
 	shift
 	shift
 	;;
-	
-	-v|--virtio)
-	virtio_img="$2"
+
+	-n|--name)
+	vm_name="$2"
 	shift
 	shift
 	;;
 
-	-n|--name)
-	vm_name="$2"
+	-o|--ovmf_code)
+	ovmf_code="$2"
+	shift
+	shift
+	;;
+
+	-p|--ovmf_vars)
+	ovmf_vars="$2"
 	shift
 	shift
 	;;
@@ -88,12 +95,12 @@ else
 fi
 
 # Get necessary file for UEFI boot
-cp /usr/share/OVMF/OVMF_VARS_4M.fd $image.fd
+cp $ovmf_vars $image.fd
 
 echo "Creating VM from $image. Memory: $memory, Graphics argument: $graphics_arg, booting with: $iso"
 qemu-system-x86_64 \
 -name guest=$vm_name,debug-threads=on \
--drive if=pflash,format=raw,readonly,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
+-drive if=pflash,format=raw,readonly,file=$ovmf_code \
 -drive if=pflash,format=raw,file=$image.fd \
 -m $memory \
 -smp $cores \
