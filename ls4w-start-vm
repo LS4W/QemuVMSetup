@@ -8,6 +8,8 @@ graphics_arg="-nographics"
 cores=1
 virtio_img="virtio-win-0.1.189.iso"
 vm_name="ls4w"
+ovmf_vars="/usr/share/OVMF/OVMF_VARS.fd"
+ovmf_code="/usr/share/OVMF/OVMF_CODE.fd"
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -56,6 +58,19 @@ case $key in
 	shift
 	shift
 	;;
+
+	-o|--ovmf-code)
+	ovmf_code="$2"
+	shift
+	shift
+	;;
+
+	-p|--ovmf-vars)
+	ovmf_vars="$2"
+	shift
+	shift
+	;;
+
 esac
 done
 
@@ -65,13 +80,13 @@ else
 	graphics_arg="-nographic"
 fi
 
-cp /usr/share/OVMF/OVMF_VARS.fd $image.fd
+cp $ovmf_vars $image.fd
 
 
 echo "Starting VM from $image. Memory: $memory, Graphics argument: $graphics_arg, booting with: $iso"
 qemu-system-x86_64 \
 -name guest=$vm_name,debug-threads=on \
--drive if=pflash,format=raw,readonly,file=/usr/share/OVMF/OVMF_CODE.fd \
+-drive if=pflash,format=raw,readonly,file=$ovmf_code \
 -drive if=pflash,format=raw,file=$image.fd \
 -m $memory \
 -smp $cores \
