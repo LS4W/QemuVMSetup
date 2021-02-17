@@ -148,7 +148,7 @@ do
 	ProgressBar $vm_image_size 10159656	
 
 	if [ $vm_image_size -gt 10159656 ] ; then
-		echo "\nDone with initial installation, waiting for VM to reboot."
+		printf "\nDone with initial installation, waiting for VM to reboot."
 		break;
 	fi
 
