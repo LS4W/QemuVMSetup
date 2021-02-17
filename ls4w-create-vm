@@ -9,6 +9,28 @@ cores=1
 virtio_img="virtio-win-0.1.189.iso"
 vm_name="ls4w"
 
+
+## Progress bar borrowed from: https://github.com/fearside/ProgressBar
+#!/bin/bash
+# 1. Create ProgressBar function
+# 1.1 Input is currentState($1) and totalState($2)
+function ProgressBar {
+# Process data
+    let _progress=(${1}*100/${2}*100)/100
+    let _done=(${_progress}*4)/10
+    let _left=40-$_done
+# Build progressbar string lengths
+    _fill=$(printf "%${_done}s")
+    _empty=$(printf "%${_left}s")
+
+# 1.2 Build progressbar strings and print the ProgressBar line
+# 1.2.1 Output example:
+# 1.2.1.1 Progress : [########################################] 100%
+printf "\rProgress : [${_fill// /#}${_empty// /-}] ${_progress}%%"
+
+}
+
+
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
@@ -88,16 +110,23 @@ $graphics_arg \
 -device ide-hd,bus=ide.0,drive=libvirt-2-format,id=sata0-0-0,bootindex=2 \
 -blockdev "{\"driver\":\"file\",\"filename\":\"$iso\",\"node-name\":\"libvirt-1-storage\",\"auto-read-only\":true,\"discard\":\"unmap\"}" \
 -blockdev '{"node-name":"libvirt-1-format","read-only":true,"driver":"raw","file":"libvirt-1-storage"}' \
--device ide-cd,bus=ide.1,drive=libvirt-1-format,id=sata0-0-1,bootindex=1 &> /dev/null &
+-device ide-cd,bus=ide.1,drive=libvirt-1-format,id=sata0-0-1,bootindex=1 &
 
 echo 
 echo Please wait while windows installs...
 
 while :
 do
-	vm_image_size = `du -k "$mage" | cut -f1`
-	current_progress = $vm_image_size / 10159656
+	vm_image_size=`du -k "$image" | cut -f1`
 		
+	ProgressBar $vm_image_size 10159656	
+
+	if [ $vm_image_size -gt 10159656 ] ; then
+		printf "\n"
+		break;
+	fi
 
 	sleep 1
 done
+
+echo "Done with initial installation, waiting for VM to reboot."
