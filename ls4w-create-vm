@@ -136,6 +136,9 @@ $graphics_arg \
 -device ide-cd,bus=ide.1,drive=libvirt-1-format,id=sata0-0-1,bootindex=1 &>> ls4w-create-vm.log &
 QEMU_PROC=$!
 
+echo "Waiting for qemu to start."
+sleep 1
+
 echo Please wait while windows installs...
 
 while :
