@@ -20,3 +20,14 @@ ls4w-create-vm -i win10_autoinstall.iso -h windows10.qcow2 --graphics yes
 # Again, use graphics to see any errors.
 ls4w-start-vm -h windows10.qcow2 --graphics yes
 ```
+
+
+## Dependencies
+This script will try to use the command qemu-system-x86_64. It also requires OVMF since it uses UEFI. It uses QXL for graphics.
+
+### Debian
+
+```sh
+# List potentially incomplete, will need updated
+ovmf qemu qemu-system-x86 spice-gtk
+```
