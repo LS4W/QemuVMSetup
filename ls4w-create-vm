@@ -94,6 +94,16 @@ case $key in
 esac
 done
 
+if [ ! -f $image ] ; then
+	echo "$image does not exist"
+	exit 2;
+fi
+
+if [ ! -f $iso ] ; then
+	echo "$iso does not exist"
+	exit 2;
+fi
+
 if [ "$enable_graphics" = "yes" ]; then
 	graphics_arg="-vga qxl"
 else
@@ -150,4 +160,4 @@ do
 done
 
 wait
-echo "Machine powered off."
+echo "Virtual Machine powered off."
