@@ -14,7 +14,7 @@ ls4w-create-hdd windows10.qcow2 20G
 
 # Create a VM with this HDD
 # You can use the graphics flag to help debug. This will create a window to show the VM
-ls4w-create-vm -i win10_autoinstall.iso -h windows10.qcow2 --graphics yes
+ls4w-create-vm -i win10_autoinstall.iso -h windows10.qcow2 --enable-graphics yes
 
 # Start the VM
 # Again, use graphics to see any errors.
